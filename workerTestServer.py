@@ -4,8 +4,8 @@ import json
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 5000  # Port to listen on (non-privileged ports are > 1023)
-testWord = "tests"
-msg = bytes(json.dumps({"hash":util.md5(testWord)}), encoding="utf-8")
+testWord = "bbbbb"
+msg = bytes(json.dumps({"hash":util.md5(testWord), "range":["aaaaa","uuuuu"]}), encoding="utf-8")
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
