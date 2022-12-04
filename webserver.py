@@ -1,5 +1,6 @@
 import string
 import socket
+import json
 
 from flask import Flask, redirect, url_for, request, render_template
 
@@ -14,14 +15,26 @@ def base():
     return render_template('index.html')
 
 
-@app.route('/success/<password>')
-def success(password):
-    return 'Found %s' % password
+# bind for access with worker
+test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+test_socket.bind(("0.0.0.0", 5001))
 
 
-@app.route('/fail/<password>')
-def fail(password):
-    return 'Failed %s' % password
+@app.route('/test/range', methods=['POST'])
+def test_range():
+    # get input
+    input_pass = request.form['pass']
+    lower_bound = request.form['lower']
+    upper_bound = request.form['upper']
+    payload = {
+        "hash": util.md5(input_pass), "range": [lower_bound, upper_bound]
+    }
+    msg = bytes(json.dumps(payload), encoding="utf-8")
+
+    # send to worker
+    test_socket.sendall(msg)
+    resp = test_socket.recv(1024).decode()
+    return resp
 
 
 @app.route('/test/socket')
