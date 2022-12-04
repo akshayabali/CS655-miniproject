@@ -29,7 +29,7 @@ def test_socket():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(("10.10.2.1", 5000))
     sock.sendall("Test message".encode())
-    resp = sock.recv(50).decode()
+    resp = sock.recv(1024).decode()
     sock.close()
     return resp
 
@@ -44,8 +44,8 @@ def crack():
                     for c5 in string.ascii_lowercase:
                         s = c1 + c2 + c3 + c4 + c5
                         if input_hash == util.md5(s):
-                            return redirect(url_for('success', password=s))
-    return redirect(url_for('fail', password=input_hash))
+                            return s
+    return 'Fail'
 
 
 if __name__ == '__main__':
