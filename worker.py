@@ -50,8 +50,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             if tobeHashed == data["range"][1]:
                 if data["hash"] == util.md5(tobeHashed):
-                    s.sendall(b"could not break hash "+bytes(data["hash"], encoding="utf-8"))
-                else:
                     s.sendall(b"found hash: "+bytes(tobeHashed, encoding="utf-8"))
+                else:
+                    s.sendall(b"could not break hash " + bytes(data["hash"], encoding="utf-8"))
                 
         active = False

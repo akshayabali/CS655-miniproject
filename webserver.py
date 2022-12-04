@@ -15,11 +15,6 @@ def base():
     return render_template('index.html')
 
 
-# bind for access with worker
-test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-test_socket.bind(("0.0.0.0", 5001))
-
-
 @app.route('/test/range', methods=['POST'])
 def test_range():
     # get input
@@ -32,8 +27,10 @@ def test_range():
     msg = bytes(json.dumps(payload), encoding="utf-8")
 
     # send to worker
-    test_socket.sendall(msg)
-    resp = test_socket.recv(1024).decode()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect(("127.0.0.1", 5001))
+        sock.sendall(msg)
+        resp = sock.recv(1024).decode()
     return resp
 
 
@@ -49,7 +46,7 @@ def test_socket():
 
 @app.route('/crack', methods=['POST'])
 def crack():
-    input_hash = request.form['nm']
+    input_hash = request.form['hash']
     for c1 in string.ascii_lowercase:
         for c2 in string.ascii_lowercase:
             for c3 in string.ascii_lowercase:
