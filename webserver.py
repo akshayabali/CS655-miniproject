@@ -1,4 +1,5 @@
 import string
+import socket
 
 from flask import Flask, redirect, url_for, request, render_template
 
@@ -23,6 +24,16 @@ def fail(password):
     return 'Failed %s' % password
 
 
+@app.route('/test/socket')
+def test_socket():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(("10.10.2.1", 5000))
+    sock.sendall("Test message".encode())
+    resp = sock.recv(50).decode()
+    sock.close()
+    return resp
+
+
 @app.route('/crack', methods=['POST'])
 def crack():
     input_hash = request.form['nm']
@@ -39,4 +50,4 @@ def crack():
 
 if __name__ == '__main__':
     # use 0.0.0.0 for web server, localhost for testing
-    app.run(host="localhost", debug=True)
+    app.run(host="0.0.0.0", debug=True)
