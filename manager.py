@@ -98,6 +98,8 @@ class Master:
       self.listening_socket = None
       self.listening_port_num = 7777 # Port number to listen on
       self.status = {}
+      self.found = ""
+      self.lhash = ""
       self.hash = "" #Hash to be processed, blank if idle
       self.lower = -1 #Lower range of processing request
       self.upper = -1 #Higher range of processing request
@@ -115,6 +117,7 @@ class Master:
       # Call the connect to worker function after successful connection
 
    def convert_to_string(self, number):
+      #Takes a base 10 integer and converts it to a base 52 character string
       string = ["", "", "", "", ""]
       for i in range(4, -1, -1):
          Q = number // 52
@@ -124,52 +127,87 @@ class Master:
       return "".join(string)
 
    def give_work(self, connection, ID):
-      while True:
-         if((time.time() - self.worker_timer[ID - 1]) > 10):
-            print(self.worker_timer[ID - 1],time.time()," Worker Died")
-            connection.close()
-            break
-         else:
+      try:
+         while True:
+            if((time.time() - self.worker_timer[ID - 1]) > 10):
+               print(self.worker_timer[ID - 1],time.time()," Worker Died")
+               # Work need to be given to others
+               connection.close()
+               break
             received = connection.recv(1024)
             print(ID-1, " Received: ",received)
-            self.status[ID - 1] = received.decode("utf-8")
-            if(self.status[ID - 1]):
-               if(self.status[ID - 1] == "Idle"):
-                  self.lock.acquire()
-                  self.lower = self.upper + 1
-                  self.upper = self.lower + 1000
-                  self.queue[ID] = [self.lower, self.upper]
-                  sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
-                  self.lock.release()
-                  sending_data = json.dumps(sending_data)
-                  print(ID-1," Sending: ",sending_data)
+            message = json.loads(received.decode("utf-8"))
+            if message["type"] == "status":
+               self.status[ID - 1] = message["status"]
+               if(self.status[ID - 1]):
+                  if((self.status[ID - 1] == "Idle" and (self.hash !=""))):
+                     #Idle and Hash Not Found to be given same function
+                     self.lock.acquire()
+                     self.lower = self.upper + 1
+                     self.upper = self.lower + 1000
+                     self.queue[ID] = [self.lower, self.upper]
+                     sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
+                     self.lock.release()
+                     sending_data = json.dumps(sending_data)
+                     print(ID-1," Sending: ",sending_data)
+                     connection.sendall(sending_data.encode())
+                     self.req_timer.insert(ID-1, time.time())
+                     # self.worker_timer[ID - 1] = time.time()
+                  # elif(self.status[ID - 1] == "Processing Request"):
+                     # self.worker_timer[ID - 1] = time.time()
+                  elif(self.status[ID - 1].startswith("Hash Found")):
+                     print("Found")
+                     self.lock.acquire()
+                     self.lhash = self.hash
+                     self.hash = ""
+                     self.lower = ""
+                     self.upper = ""
+                     self.lock.release()
+                  elif(self.status[ID - 1].startswith("Hash Not Found")):
+                     time_taken = time.time() - self.req_timer[ID - 1]
+                     rang = self.queue[ID][1] - self.queue[ID][0]
+                     hash_rate = rang // time_taken
+                     work = hash_rate * 10
+                     self.lock.acquire()
+                     self.lower = self.upper + 1
+                     self.upper = self.lower + work
+                     self.queue[ID] = [self.lower, self.upper]
+                     sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
+                     self.lock.release()
+                     sending_data = json.dumps(sending_data)
+                     print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
+                     connection.sendall(sending_data.encode())
+                     # self.worker_timer[ID - 1] = time.time()
+                     self.req_timer[ID - 1] = time.time()
+               self.worker_timer[ID - 1] = time.time()
+            elif message["type"] == "ordered":
+               self.lock.acquire()
+               if self.hash == "":
+                  self.hash = message["hash"]
+                  self.lower = message["lower"]
+                  self.upper = message["upper"]
+               else:
+                  msg = {"type" : "status","status":"Busy"}
+                  sending_data = json.dumps(msg)
                   connection.sendall(sending_data.encode())
-                  self.req_timer.insert(ID-1, time.time())
-                  self.worker_timer[ID - 1] = time.time()
-               elif(self.status[ID - 1] == "Processing Request"):
-                  self.worker_timer[ID - 1] = time.time()
-               elif(self.status[ID - 1].startswith("found hash")):
-                  print("Found")
-                  # print the hash ask to send in json
-                  # connection.close()
-                  # break
-               elif(self.status[ID - 1].startswith("could not")):
-                  time_taken = time.time() - self.req_timer[ID - 1]
-                  rang = self.queue[ID][1] - self.queue[ID][0]
-                  hash_rate = rang // time_taken
-                  work = hash_rate * 10
+               self.lock.release()
+               while True:
                   self.lock.acquire()
-                  self.lower = self.upper + 1
-                  self.upper = self.lower + work
-                  self.queue[ID] = [self.lower, self.upper]
-                  sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
+                  if self.found == "":
+                     time.sleep(3)
+                  else:
+                     msg = {"type": "status"}
+                     msg["status"] = "Hash Found"
+                     msg["hash"] = self.lhash
+                     msg["pass"] = self.found
+                     payload = json.dumps(msg)
+                     connection.sendall(payload.encode())
+                     self.found == ""
+                     connection.close()
+                     break
                   self.lock.release()
-                  sending_data = json.dumps(sending_data)
-                  print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
-                  connection.sendall(sending_data.encode())
-                  self.worker_timer[ID - 1] = time.time()
-                  self.req_timer[ID - 1] = time.time()
-
+      except:
+         pass
    def connect_to_worker(self, hash):
       self.hash = hash
       print(self.hash)
@@ -192,7 +230,7 @@ class Master:
          t.start()
       # self.master["master_socket"].close()
 
-hash = "fa6c2774e4799336714b30739a95bb2c"
+hash = ""
 print(hash)
 m = Master()
 m.connect_to_worker(hash)
