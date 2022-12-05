@@ -3,6 +3,7 @@ import json
 import threading
 import time
 from enum import Enum
+import traceback
 
 '''
 Request Format:
@@ -126,6 +127,8 @@ class Master:
          conn, addr = self.listening_socket.accept()
          # only handle one request at a time
          self.give_work(conn, 0, True)
+         t = threading.Thread(target=self.give_work, args=(conn, 0, True))
+         t.start()
          self.connect_to_worker()
 
    def convert_to_string(self, number):
@@ -198,8 +201,8 @@ class Master:
                if self.hash == "":
                   with self.lock:
                      self.hash = message["hash"]
-                     self.lower = message["lower"]
-                     self.upper = message["upper"]
+                     self.lower = message["range"][0]
+                     self.upper = message["range"][1]
                   while True:
                      with self.lock:
                         if self.found != "":
@@ -220,6 +223,8 @@ class Master:
                      connection.sendall(sending_data.encode())
       except Exception as e:
          print(e)
+         traceback.print_exc()
+         connection.close()
          pass
 
    def connect_to_worker(self, input_hash=None):
