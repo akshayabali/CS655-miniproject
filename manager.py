@@ -186,25 +186,27 @@ class Master:
                   self.hash = message["hash"]
                   self.lower = message["lower"]
                   self.upper = message["upper"]
+                  self.lock.release()
+                  while True:
+                     self.lock.acquire()
+                     if self.found == "":
+                        self.lock.release()
+                        time.sleep(3)
+                     else:
+                        msg = {"type": "status"}
+                        msg["status"] = "Hash Found"
+                        msg["hash"] = self.lhash
+                        msg["pass"] = self.found
+                        payload = json.dumps(msg)
+                        connection.sendall(payload.encode())
+                        self.found == ""
+                        connection.close()
+                        self.lock.release()
+                        break
                else:
                   msg = {"type" : "status","status":"Busy"}
                   sending_data = json.dumps(msg)
                   connection.sendall(sending_data.encode())
-               self.lock.release()
-               while True:
-                  self.lock.acquire()
-                  if self.found == "":
-                     time.sleep(3)
-                  else:
-                     msg = {"type": "status"}
-                     msg["status"] = "Hash Found"
-                     msg["hash"] = self.lhash
-                     msg["pass"] = self.found
-                     payload = json.dumps(msg)
-                     connection.sendall(payload.encode())
-                     self.found == ""
-                     connection.close()
-                     break
                   self.lock.release()
       except:
          pass
