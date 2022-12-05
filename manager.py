@@ -1,10 +1,9 @@
-import sys
 import socket
-import time
 import json
 import threading
 import time
 from enum import Enum
+
 '''
 Request Format:
 {hash,request_type(ordered/unordered),range}
@@ -30,6 +29,7 @@ If all children are working: they'll reply "Processing Request"
 And reply "idle" if they are ready for requests
 
 '''
+
 
 class Alphabet(Enum):
    A = 0
@@ -91,8 +91,8 @@ class Master:
       # Global Objects
       self.children = [{}] #List of children as a list of objects
       self.master = {
-         "master_ip": "0.0.0.0", #IP of the master
-         "master_port": "58513", #Port number of the master
+         "master_ip": "0.0.0.0",  # IP of the master
+         "master_port": "58513",  # Port number of the master
          "master_socket": None
       }
       self.worker_timer = []
@@ -152,8 +152,8 @@ class Master:
             message = json.loads(received.decode("utf-8"))
             if message["type"] == "status":
                self.status[ID - 1] = message["status"]
-               if(self.status[ID - 1]):
-                  if((self.status[ID - 1] == "Idle" and (self.hash != ""))):
+               if self.status[ID - 1]:
+                  if self.status[ID - 1] == "Idle" and self.hash != "":
                      #Idle and Hash Not Found to be given same function
                      self.lock.acquire()
                      self.lower = self.upper + 1
@@ -168,7 +168,7 @@ class Master:
                      # self.worker_timer[ID - 1] = time.time()
                   # elif(self.status[ID - 1] == "Processing Request"):
                      # self.worker_timer[ID - 1] = time.time()
-                  elif(self.status[ID - 1].startswith("Hash Found")):
+                  elif self.status[ID - 1].startswith("Hash Found"):
                      print("Found")
                      self.lock.acquire()
                      self.lhash = self.hash
@@ -177,7 +177,7 @@ class Master:
                      self.lower = ""
                      self.upper = ""
                      self.lock.release()
-                  elif(self.status[ID - 1].startswith("Hash Not Found")):
+                  elif self.status[ID - 1].startswith("Hash Not Found"):
                      time_taken = time.time() - self.req_timer[ID - 1]
                      rang = self.queue[ID][1] - self.queue[ID][0]
                      hash_rate = rang // time_taken
@@ -195,43 +195,41 @@ class Master:
                      self.req_timer[ID - 1] = time.time()
                self.worker_timer[ID - 1] = time.time()
             elif message["type"] == "ordered":
-               self.lock.acquire()
                if self.hash == "":
-                  self.hash = message["hash"]
-                  self.lower = message["lower"]
-                  self.upper = message["upper"]
-                  self.lock.release()
+                  with self.lock:
+                     self.hash = message["hash"]
+                     self.lower = message["lower"]
+                     self.upper = message["upper"]
                   while True:
-                     self.lock.acquire()
-                     if self.found == "":
-                        self.lock.release()
-                        time.sleep(3)
-                     else:
-                        msg = {"type": "status"}
-                        msg["status"] = "Hash Found"
-                        msg["hash"] = self.lhash
-                        msg["pass"] = self.found
-                        payload = json.dumps(msg)
-                        connection.sendall(payload.encode())
-                        self.found = ""
-                        connection.close()
-                        self.lock.release()
-                        break
+                     with self.lock:
+                        if self.found != "":
+                           msg = {"type": "status"}
+                           msg["status"] = "Hash Found"
+                           msg["hash"] = self.lhash
+                           msg["pass"] = self.found
+                           payload = json.dumps(msg)
+                           connection.sendall(payload.encode())
+                           self.found = ""
+                           connection.close()
+                           break
+                     time.sleep(10)
                else:
-                  msg = {"type": "status", "status": "Busy"}
-                  sending_data = json.dumps(msg)
-                  connection.sendall(sending_data.encode())
-                  self.lock.release()
-      except:
+                  with self.lock:
+                     msg = {"type": "status", "status": "Busy"}
+                     sending_data = json.dumps(msg)
+                     connection.sendall(sending_data.encode())
+      except Exception as e:
+         print(e)
          pass
 
-   def connect_to_worker(self, hash):
-      # self.hash = hash
+   def connect_to_worker(self, input_hash=None):
+      if input_hash:
+         self.hash = input_hash
       print(self.hash)
       self.master["master_socket"] = socket.socket()
       # serverHost = self.master["master_ip"]
       serverPort = int(self.master["master_port"])
-      x = self.master["master_socket"].bind(("",serverPort ))
+      x = self.master["master_socket"].bind(("", serverPort))
       print(x,"Bind sucessfull")
       self.master["master_socket"].listen() 
       print("Listening")
