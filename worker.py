@@ -5,8 +5,8 @@ import util
 import json
 import string
 
-HOST = "localhost"
-PORT = 5000
+HOST = "csa2.bu.edu"
+PORT = 58513
 BUFSIZE = 1024
 
 active = False
@@ -26,11 +26,16 @@ def increment_str(s):
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     def heartbeat():
+        msg = {"type":"status"}
         while True:
             if active:
-                s.sendall(b"Processing Request")
+                msg["status"] = "Processing Request"
+                payload = json.dumps(msg)
+                s.sendall(payload.encode())
             else:
-                s.sendall(b"Idle")
+                msg["status"] = "Idle"
+                payload = json.dumps(msg)
+                s.sendall(payload.encode())
             time.sleep(3)
     s.connect((HOST, PORT))
     t = threading.Thread(target=heartbeat)
@@ -38,20 +43,29 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     while True:
         received = s.recv(BUFSIZE)
         if received:
+            msg = {"type":"status"}
             data = json.loads(received)
             active = True
-
             tobeHashed = data["range"][0]
             while tobeHashed != data["range"][1]:
                 if data["hash"] == util.md5(tobeHashed):
-                    s.sendall(b"found hash: "+bytes(tobeHashed, encoding="utf-8"))
+                    msg["status"] = "Hash Found"
+                    msg["pass"] = tobeHashed
+                    payload = json.dumps(msg)
+                    s.sendall(payload.encode())
                     break
                 tobeHashed = increment_str(tobeHashed)
-
             if tobeHashed == data["range"][1]:
                 if data["hash"] == util.md5(tobeHashed):
-                    s.sendall(b"found hash: "+bytes(tobeHashed, encoding="utf-8"))
+                    msg["status"] = "Hash Found"
+                    msg["hash"] = data["hash"]
+                    msg["pass"] = tobeHashed
+                    payload = json.dumps(msg)
+                    s.sendall(payload.encode())
                 else:
-                    s.sendall(b"could not break hash " + bytes(data["hash"], encoding="utf-8"))
+                    msg["status"] = "Hash Not Found"
+                    msg["hash"] = data["hash"]
+                    payload = json.dumps(msg)
+                    s.sendall(payload.encode())
                 
         active = False
