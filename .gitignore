@@ -3,3 +3,5 @@ venv/
 *.xml
 
 __pycache__/
+
+!deployment/rspec.xml

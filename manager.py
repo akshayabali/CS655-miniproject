@@ -84,25 +84,32 @@ class Alphabet(Enum):
    x = 49
    y = 50
    z = 51
-   
+
+
 class Master:
    def __init__(self):
       # Global Objects
       self.children = [{}] #List of children as a list of objects
       self.master = {
-         "master_ip": "127.0.0.1", #IP of the master
-         "master_port" : "58513", #Port number of the master
+         "master_ip": "0.0.0.0", #IP of the master
+         "master_port": "58513", #Port number of the master
          "master_socket": None
       }
       self.worker_timer = []
-      self.listening_socket = None
-      self.listening_port_num = 7777 # Port number to listen on
+
+      self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.listening_address = "127.0.0.1"  # listen address, web server is on same machine
+      self.listening_port_num = 7777  # Port number to listen on
+      self.listening_socket.bind((self.listening_address, self.listening_port_num))
+      self.listening_socket.listen()
+      self.current_conn = None
+
       self.status = {}
-      self.found = ""
-      self.lhash = ""
-      self.hash = "" #Hash to be processed, blank if idle
-      self.lower = -1 #Lower range of processing request
-      self.upper = -1 #Higher range of processing request
+      self.found = ""  # Password of hash
+      self.lhash = ""  # Last hash processed
+      self.hash = ""  # Hash to be processed, blank if idle
+      self.lower = -1  # Lower range of processing request
+      self.upper = -1  # Higher range of processing request
       self.queue = {
          0 : [0, 0]
       }
@@ -112,9 +119,14 @@ class Master:
       #Need a way to handle sequential and random requests
       # Status can be either {"idle", "Processing Request", "No Worker Available(If manager)"}
    
-   # def connect_to_client(self):
+   def connect_to_client(self):
       # Start connection with the client where you'll get the Hash
       # Call the connect to worker function after successful connection
+      while True:
+         conn, addr = self.listening_socket.accept()
+         # only handle one request at a time
+         self.give_work(conn, 0, True)
+         self.connect_to_worker()
 
    def convert_to_string(self, number):
       #Takes a base 10 integer and converts it to a base 52 character string
@@ -126,21 +138,22 @@ class Master:
          number = Q
       return "".join(string)
 
-   def give_work(self, connection, ID):
+   def give_work(self, connection, ID, skip=False):
       try:
          while True:
-            if((time.time() - self.worker_timer[ID - 1]) > 10):
-               print(self.worker_timer[ID - 1],time.time()," Worker Died")
-               # Work need to be given to others
-               connection.close()
-               break
+            if not skip:
+               if (time.time() - self.worker_timer[ID - 1]) > 10:
+                  print(self.worker_timer[ID - 1],time.time()," Worker Died")
+                  # Work need to be given to others
+                  connection.close()
+                  break
             received = connection.recv(1024)
-            print(ID-1, " Received: ",received)
+            print(ID-1, " Received: ", received)
             message = json.loads(received.decode("utf-8"))
             if message["type"] == "status":
                self.status[ID - 1] = message["status"]
                if(self.status[ID - 1]):
-                  if((self.status[ID - 1] == "Idle" and (self.hash !=""))):
+                  if((self.status[ID - 1] == "Idle" and (self.hash != ""))):
                      #Idle and Hash Not Found to be given same function
                      self.lock.acquire()
                      self.lower = self.upper + 1
@@ -159,6 +172,7 @@ class Master:
                      print("Found")
                      self.lock.acquire()
                      self.lhash = self.hash
+                     self.found = message["pass"]
                      self.hash = ""
                      self.lower = ""
                      self.upper = ""
@@ -199,19 +213,20 @@ class Master:
                         msg["pass"] = self.found
                         payload = json.dumps(msg)
                         connection.sendall(payload.encode())
-                        self.found == ""
+                        self.found = ""
                         connection.close()
                         self.lock.release()
                         break
                else:
-                  msg = {"type" : "status","status":"Busy"}
+                  msg = {"type": "status", "status": "Busy"}
                   sending_data = json.dumps(msg)
                   connection.sendall(sending_data.encode())
                   self.lock.release()
       except:
          pass
+
    def connect_to_worker(self, hash):
-      self.hash = hash
+      # self.hash = hash
       print(self.hash)
       self.master["master_socket"] = socket.socket()
       # serverHost = self.master["master_ip"]
@@ -232,7 +247,18 @@ class Master:
          t.start()
       # self.master["master_socket"].close()
 
-hash = ""
-print(hash)
-m = Master()
-m.connect_to_worker(hash)
+
+def test():
+   hash = ""
+   print(hash)
+   m = Master()
+   m.connect_to_worker(hash)
+
+
+def main():
+   m = Master()
+   m.connect_to_client()
+
+
+if __name__ == '__main__':
+   main()

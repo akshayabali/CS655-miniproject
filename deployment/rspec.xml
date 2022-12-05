@@ -1,0 +1,163 @@
+<rspec xmlns="http://www.geni.net/resources/rspec/3" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:tour="http://www.protogeni.net/resources/rspec/ext/apt-tour/1" xmlns:jacks="http://www.protogeni.net/resources/rspec/ext/jacks/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3    http://www.geni.net/resources/rspec/3/request.xsd" type="request">
+  <node xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" client_id="manager1" component_manager_id="urn:publicid:IDN+instageni.uvm.edu+authority+cm" component_id="urn:publicid:IDN+instageni.uvm.edu+node+pc1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116475" exclusive="false">
+    <icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/VM-noTxt-centered.svg"/>
+    <sliver_type name="default-vm"/>
+    <services>
+      <emulab:imageable available="true"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="ctony"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="lei"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="cyrilc"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="matta"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="anashe"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="shivi09"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26810" username="abali"/>
+      <emulab:console server="vhost1.shared-nodes.emulab-ops.instageni.uvm.edu"/>
+    </services>
+    <interface client_id="interface-0" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116483" mac_address="02758ba6d6cb">
+      <ip address="10.10.1.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="interface-5" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116490" mac_address="027ba53ce095">
+      <ip address="10.10.3.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="interface-9" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116496" mac_address="02bb57a72cff">
+      <ip address="10.10.5.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <emulab:vnode name="pcvm1-20" hardware_type="pcvm"/>
+    <host name="manager1.cyril-custom.ch-geni-net.instageni.uvm.edu"/>
+  </node>
+  <node xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" client_id="worker0-1" component_manager_id="urn:publicid:IDN+instageni.uvm.edu+authority+cm" component_id="urn:publicid:IDN+instageni.uvm.edu+node+pc1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116477" exclusive="false">
+    <icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/VM-noTxt-centered.svg"/>
+    <sliver_type name="default-vm"/>
+    <services>
+      <emulab:imageable available="true"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="ctony"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="lei"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="cyrilc"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="matta"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="anashe"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="shivi09"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26812" username="abali"/>
+      <emulab:console server="vhost1.shared-nodes.emulab-ops.instageni.uvm.edu"/>
+    </services>
+    <interface client_id="interface-2" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116486" mac_address="025fc0769437">
+      <ip address="10.10.2.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <emulab:vnode name="pcvm1-22" hardware_type="pcvm"/>
+    <host name="worker0-1.cyril-custom.ch-geni-net.instageni.uvm.edu"/>
+  </node>
+  <node xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" client_id="server" component_manager_id="urn:publicid:IDN+instageni.uvm.edu+authority+cm" component_id="urn:publicid:IDN+instageni.uvm.edu+node+pc1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116476" exclusive="false">
+    <icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/VM-noTxt-centered.svg"/>
+    <sliver_type name="default-vm"/>
+    <services>
+      <emulab:imageable available="true"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="ctony"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="lei"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="cyrilc"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="matta"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="anashe"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="shivi09"/>
+      <login authentication="ssh-keys" hostname="pcvm1-21.instageni.uvm.edu" port="22" username="abali"/>
+      <emulab:console server="vhost1.shared-nodes.emulab-ops.instageni.uvm.edu"/>
+    </services>
+    <interface client_id="interface-1" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116484" mac_address="02fa5f24c0b6">
+      <ip address="10.10.1.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="interface-3" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116487" mac_address="02dd64f608d1">
+      <ip address="10.10.2.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="interface-7" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116493" mac_address="020edd112715">
+      <ip address="10.10.4.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+    <emulab:vnode name="pcvm1-21" hardware_type="pcvm"/>
+    <host name="server.cyril-custom.ch-geni-net.instageni.uvm.edu" ipv4="132.198.183.154"/>
+  </node>
+  <node xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" client_id="worker0-2" component_manager_id="urn:publicid:IDN+instageni.uvm.edu+authority+cm" component_id="urn:publicid:IDN+instageni.uvm.edu+node+pc1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116478" exclusive="false">
+    <icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/VM-noTxt-centered.svg"/>
+    <sliver_type name="default-vm"/>
+    <services>
+      <emulab:imageable available="true"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="ctony"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="lei"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="cyrilc"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="matta"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="anashe"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="shivi09"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26813" username="abali"/>
+      <emulab:console server="vhost1.shared-nodes.emulab-ops.instageni.uvm.edu"/>
+    </services>
+    <interface client_id="interface-6" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116492" mac_address="0296273d9ee6">
+      <ip address="10.10.4.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <emulab:vnode name="pcvm1-23" hardware_type="pcvm"/>
+    <host name="worker0-2.cyril-custom.ch-geni-net.instageni.uvm.edu"/>
+  </node>
+  <node xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" client_id="worker1-1" component_manager_id="urn:publicid:IDN+instageni.uvm.edu+authority+cm" component_id="urn:publicid:IDN+instageni.uvm.edu+node+pc1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116479" exclusive="false">
+    <icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/VM-noTxt-centered.svg"/>
+    <sliver_type name="default-vm"/>
+    <services>
+      <emulab:imageable available="true"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="ctony"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="lei"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="cyrilc"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="matta"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="anashe"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="shivi09"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26814" username="abali"/>
+      <emulab:console server="vhost1.shared-nodes.emulab-ops.instageni.uvm.edu"/>
+    </services>
+    <interface client_id="interface-4" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116489" mac_address="02b3abdd9984">
+      <ip address="10.10.3.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <emulab:vnode name="pcvm1-24" hardware_type="pcvm"/>
+    <host name="worker1-1.cyril-custom.ch-geni-net.instageni.uvm.edu"/>
+  </node>
+  <node xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" client_id="worker1-2" component_manager_id="urn:publicid:IDN+instageni.uvm.edu+authority+cm" component_id="urn:publicid:IDN+instageni.uvm.edu+node+pc1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116480" exclusive="false">
+    <icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/VM-noTxt-centered.svg"/>
+    <sliver_type name="default-vm"/>
+    <services>
+      <emulab:imageable available="true"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="ctony"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="lei"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="cyrilc"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="matta"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="anashe"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="shivi09"/>
+      <login authentication="ssh-keys" hostname="pc1.instageni.uvm.edu" port="26815" username="abali"/>
+      <emulab:console server="vhost1.shared-nodes.emulab-ops.instageni.uvm.edu"/>
+    </services>
+    <interface client_id="interface-8" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116495" mac_address="020ad1a70d76">
+      <ip address="10.10.5.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <emulab:vnode name="pcvm1-25" hardware_type="pcvm"/>
+    <host name="worker1-2.cyril-custom.ch-geni-net.instageni.uvm.edu"/>
+  </node>
+  <link client_id="link-0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116482">
+    <interface_ref client_id="interface-0" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116483"/>
+    <interface_ref client_id="interface-1" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116484"/>
+    <component_manager name="urn:publicid:IDN+instageni.uvm.edu+authority+cm"/>
+  </link>
+  <link client_id="link-1" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116485">
+    <interface_ref client_id="interface-2" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116486"/>
+    <interface_ref client_id="interface-3" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116487"/>
+    <component_manager name="urn:publicid:IDN+instageni.uvm.edu+authority+cm"/>
+  </link>
+  <link client_id="link-2" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116488">
+    <interface_ref client_id="interface-4" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116489"/>
+    <interface_ref client_id="interface-5" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116490"/>
+    <component_manager name="urn:publicid:IDN+instageni.uvm.edu+authority+cm"/>
+  </link>
+  <link client_id="link-3" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116491">
+    <interface_ref client_id="interface-6" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116492"/>
+    <interface_ref client_id="interface-7" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116493"/>
+    <component_manager name="urn:publicid:IDN+instageni.uvm.edu+authority+cm"/>
+  </link>
+  <link client_id="link-4" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116494">
+    <interface_ref client_id="interface-8" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116495"/>
+    <interface_ref client_id="interface-9" component_id="urn:publicid:IDN+instageni.uvm.edu+interface+pc1:lo0" sliver_id="urn:publicid:IDN+instageni.uvm.edu+sliver+116496"/>
+    <component_manager name="urn:publicid:IDN+instageni.uvm.edu+authority+cm"/>
+  </link>
+  <rs:site_info xmlns:rs="http://www.protogeni.net/resources/rspec/ext/site-info/1">
+    <rs:location country="US" latitude="44.47785" longitude="-73.19646"/>
+  </rs:site_info>
+</rspec>
