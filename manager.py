@@ -103,7 +103,6 @@ class Master:
       self.listening_port_num = 7777  # Port number to listen on
       self.listening_socket.bind((self.listening_address, self.listening_port_num))
       self.listening_socket.listen()
-      self.current_conn = None
 
       self.status = {}
       self.found = ""  # Password of hash
@@ -123,13 +122,11 @@ class Master:
    def connect_to_client(self):
       # Start connection with the client where you'll get the Hash
       # Call the connect to worker function after successful connection
+      self.connect_to_worker()
       while True:
          conn, addr = self.listening_socket.accept()
-         # only handle one request at a time
-         self.give_work(conn, 0, True)
          t = threading.Thread(target=self.give_work, args=(conn, 0, True))
          t.start()
-         self.connect_to_worker()
 
    def convert_to_string(self, number):
       #Takes a base 10 integer and converts it to a base 52 character string
@@ -140,6 +137,13 @@ class Master:
          string[i] = Alphabet(R).name
          number = Q
       return "".join(string)
+
+   def convert_to_int(self, s: str) -> int:
+      #Takes a base 52 character string and converts to base 10 integer
+      val = 0
+      for i in range(4, -1, -1):
+         val = val + Alphabet[s[i]].value * (52**i)
+      return val
 
    def give_work(self, connection, ID, skip=False):
       try:
@@ -201,8 +205,8 @@ class Master:
                if self.hash == "":
                   with self.lock:
                      self.hash = message["hash"]
-                     self.lower = message["range"][0]
-                     self.upper = message["range"][1]
+                     self.lower = self.convert_to_int(message["range"][0])
+                     self.upper = self.convert_to_int(message["range"][1])
                   while True:
                      with self.lock:
                         if self.found != "":
