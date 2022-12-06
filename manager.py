@@ -118,15 +118,6 @@ class Master:
       #self.popped_queue = {["",""]}
       #Need a way to handle sequential and random requests
       # Status can be either {"idle", "Processing Request", "No Worker Available(If manager)"}
-   
-   def connect_to_client(self):
-      # Start connection with the client where you'll get the Hash
-      # Call the connect to worker function after successful connection
-      self.connect_to_worker()
-      while True:
-         conn, addr = self.listening_socket.accept()
-         t = threading.Thread(target=self.give_work, args=(conn, 0, True))
-         t.start()
 
    def convert_to_string(self, number):
       #Takes a base 10 integer and converts it to a base 52 character string
@@ -254,6 +245,20 @@ class Master:
          t.start()
       # self.master["master_socket"].close()
 
+   def connect_to_client(self):
+      # Start connection with the client where you'll get the Hash
+      # Call the connect to worker function after successful connection
+      while True:
+         conn, addr = self.listening_socket.accept()
+         t = threading.Thread(target=self.give_work, args=(conn, 0, True))
+         t.start()
+
+   def start(self):
+      client_server = threading.Thread(target=self.connect_to_client)
+      client_server.start()
+      worker_server = threading.Thread(target=self.connect_to_worker)
+      worker_server.start()
+
 
 def test():
    hash = ""
@@ -264,7 +269,7 @@ def test():
 
 def main():
    m = Master()
-   m.connect_to_client()
+   m.start()
 
 
 if __name__ == '__main__':
