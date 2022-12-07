@@ -3,7 +3,6 @@ import threading
 import time
 import util
 import json
-import string
 
 HOST = "csa2.bu.edu"
 PORT = 58513
@@ -11,12 +10,15 @@ BUFSIZE = 1024
 
 active = False
 
+
 def increment_char(c):
     if c == 'z':
         return 'A'
     elif c == 'Z':
         return 'a'
     return chr(ord(c) + 1)
+
+
 def increment_str(s):
     lpart = s.rstrip('z')
     num_replacements = len(s) - len(lpart)
@@ -24,9 +26,10 @@ def increment_str(s):
     new_s += 'A' * num_replacements
     return new_s
 
+
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     def heartbeat():
-        msg = {"type":"status"}
+        msg = {"type": "status"}
         while True:
             if active:
                 msg["status"] = "Processing Request"

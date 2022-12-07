@@ -20,8 +20,13 @@ def base():
     return render_template('index.html')
 
 
+@app.route('/test/display', methods=['GET'])
+def result_display():
+    return render_template("result.html", status="Hash Found", input_hash="abuawd2ijadhiaw", password="AAAAA")
+
+
 @app.route('/test/range', methods=['POST'])
-def test_range():
+def range_form():
     # get input
     input_pass = request.form['pass']
     lower_bound = request.form['lower']
@@ -36,16 +41,6 @@ def test_range():
         sock.connect(("127.0.0.1", 5001))
         sock.sendall(msg)
         resp = sock.recv(1024).decode()
-    return resp
-
-
-@app.route('/test/socket')
-def test_socket():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(("10.10.2.1", 5000))
-    sock.sendall("Test message".encode())
-    resp = sock.recv(1024).decode()
-    sock.close()
     return resp
 
 
@@ -70,9 +65,12 @@ def crack():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((MASTER_HOST, MASTER_PORT))
         sock.sendall(json.dumps(payload).encode())
-        resp = sock.recv(DEFAULT_MSG_SIZE).decode()
+        msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    resp = json.loads(msg)
     print(resp)
-    return resp
+    status = resp.get("status", "Busy")
+    password = resp.get("pass", "Not Found")
+    return render_template("result.html", status=status, input_hash=input_hash, password=password)
 
 
 if __name__ == '__main__':
