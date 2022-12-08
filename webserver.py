@@ -60,10 +60,21 @@ def crack_json(input_hash):
 
     # send to master
     start = time.time()
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((MASTER_HOST, MASTER_PORT))
-        sock.sendall(json.dumps(payload).encode())
-        msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((MASTER_HOST, MASTER_PORT))
+            sock.sendall(json.dumps(payload).encode())
+            msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    except Exception as e:
+        print(e)
+        resp = {
+            "status": "No master",
+            "input_hash": input_hash,
+            "password": "00000",
+            "resp_time": time.time() - start
+        }
+        return resp
+
     resp_time = time.time() - start
     resp = json.loads(msg)
     resp['time'] = resp_time
@@ -92,10 +103,18 @@ def crack():
 
     # send to master
     start = time.time()
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((MASTER_HOST, MASTER_PORT))
-        sock.sendall(json.dumps(payload).encode())
-        msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((MASTER_HOST, MASTER_PORT))
+            sock.sendall(json.dumps(payload).encode())
+            msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    except Exception as e:
+        print(e)
+        status = "No master"
+        input_hash = input_hash
+        password = "00000"
+        resp_time = time.time() - start
+        return render_template("result.html", status=status, input_hash=input_hash, password=password, resp_time=resp_time)
     resp_time = start - time.time()
     resp = json.loads(msg)
     resp['time'] = resp_time
