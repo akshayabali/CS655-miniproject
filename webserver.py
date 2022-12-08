@@ -1,5 +1,6 @@
 import socket
 import json
+import time
 
 from flask import Flask, request, render_template
 
@@ -43,6 +44,28 @@ def range_form():
         resp = sock.recv(1024).decode()
     return resp
 
+
+@app.route('/crack2/<input_hash>', methods=['POST'])
+def crack_json(input_hash):
+    lower_bound = 'AAAAA'
+    upper_bound = 'zzzzz'
+
+    payload = {
+        "type": "ordered",
+        "hash": input_hash,
+        "range": [lower_bound, upper_bound]
+    }
+
+    # send to master
+    start = time.time()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((MASTER_HOST, MASTER_PORT))
+        sock.sendall(json.dumps(payload).encode())
+        msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    resp = json.loads(msg)
+    resp_time = start - time.time()
+    resp['time'] = resp_time
+    return resp
 
 @app.route('/crack', methods=['POST'])
 def crack():
