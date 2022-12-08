@@ -115,7 +115,7 @@ def crack():
         password = "00000"
         resp_time = time.time() - start
         return render_template("result.html", status=status, input_hash=input_hash, password=password, resp_time=resp_time)
-    resp_time = start - time.time()
+    resp_time = time.time() - start
     resp = json.loads(msg)
     resp['time'] = resp_time
     status = resp.get("status", "Busy")
