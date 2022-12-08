@@ -158,12 +158,15 @@ class Master:
                      self.lower = self.upper + 1
                      self.upper = self.lower + 1000
                      if self.upper > self.max:
-                        print("Max Reached",self.upper,self.convert_to_int(mstring))
-                        self.lhash = self.hash
-                        self.found = "00000"
-                        self.hash = ""
-                        self.lower = -1
-                        self.upper = -1
+                        if self.lower <= self.max:
+                           self.upper = self.max
+                        else:
+                           print("Max Reached",self.upper,self.max)
+                           self.lhash = self.hash
+                           self.found = "00000"
+                           self.hash = ""
+                           self.lower = -1
+                           self.upper = -1
                      else:
                         self.queue[ID] = [self.lower, self.upper]
                         sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
@@ -193,12 +196,15 @@ class Master:
                      self.lower = self.upper + 1
                      self.upper = self.lower + work
                      if self.upper > self.max:
-                        print("Max Reached",self.upper,self.max)
-                        self.lhash = self.hash
-                        self.found = "00000"
-                        self.hash = ""
-                        self.lower = -1
-                        self.upper = -1
+                        if self.lower <= self.max:
+                           self.upper = self.max
+                        else:
+                           print("Max Reached",self.upper,self.max)
+                           self.lhash = self.hash
+                           self.found = "00000"
+                           self.hash = ""
+                           self.lower = -1
+                           self.upper = -1
                      else:
                         self.queue[ID] = [self.lower, self.upper]
                         sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
@@ -237,9 +243,9 @@ class Master:
                      connection.sendall(sending_data.encode())
       except Exception as e:
          print(e)
-         traceback.print_exc()
-         connection.close()
-         pass
+         # traceback.print_exc()
+         # connection.close()
+         # pass
 
    def connect_to_worker(self, input_hash=None):
       if input_hash:

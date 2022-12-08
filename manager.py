@@ -226,8 +226,8 @@ class Manager:
                             connection.sendall(sending_data.encode())
         except Exception as e:
             print(e)
-            traceback.print_exc()
-            connection.close()
+            # traceback.print_exc()
+            # connection.close()
 
     def send_heartbeat(self):
         msg = {"type":"status"}
@@ -256,7 +256,7 @@ class Manager:
         serverPort = int(self.manager["manager_port"])
         x = self.manager["manager_socket"].bind(("0.0.0.0", serverPort))
         if x:
-        	print(x, "Bind sucessfull to Worker")
+            print(x, "Bind sucessfull to Worker")
         else:
             print("No Bind")
         self.manager["manager_socket"].listen() 
