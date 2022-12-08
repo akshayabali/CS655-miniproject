@@ -170,12 +170,12 @@ class Master:
                      else:
                         self.queue[ID] = [self.lower, self.upper]
                         sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
-                        self.lock.release()
                         sending_data = json.dumps(sending_data)
                         print(ID-1," Sending: ",sending_data)
                         connection.sendall(sending_data.encode())
                         self.req_timer.insert(ID-1, time.time())
                         # self.worker_timer[ID - 1] = time.time()
+                     self.lock.release()
                   # elif(self.status[ID - 1] == "Processing Request"):
                      # self.worker_timer[ID - 1] = time.time()
                   elif self.status[ID - 1].startswith("Hash Found"):
@@ -209,12 +209,12 @@ class Master:
                      else:
                         self.queue[ID] = [self.lower, self.upper]
                         sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
-                        self.lock.release()
                         sending_data = json.dumps(sending_data)
                         print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
                         connection.sendall(sending_data.encode())
                         # self.worker_timer[ID - 1] = time.time()
                         self.req_timer[ID - 1] = time.time()
+                     self.lock.release()
                self.worker_timer[ID - 1] = time.time()
             elif message["type"] == "ordered":
                if self.hash == "":
