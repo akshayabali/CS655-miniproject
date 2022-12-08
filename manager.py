@@ -6,6 +6,12 @@ import time
 from enum import Enum
 import traceback
 
+'''
+Manager class receives a task from its manager and handles the division
+and forwarding the work to its underlings, based on the hash rate of the underlings.
+'''
+
+# The enum class for calculating the hash
 class Alphabet(Enum):
     A = 0
     B = 1
@@ -66,36 +72,33 @@ class Manager:
         self.children = [{}] #List of children as a list of objects
         self.manager = {
             "manager_port": LPORT,  # Port number of the manager
-            "manager_socket": None
+            "manager_socket": None  # Socket for the connection between manager and it's children
         }
 
         self.master = {
             "master_ip": HOST,  # IP of the master
             "master_port": MPORT,  # Port number of the master
-            "master_socket": None
+            "master_socket": None  # Socket for the connection between manager and it's parent/master
         }
 
-        self.worker_timer = []
+        self.worker_timer = [] # Stores the time when a heartbeat is received from the worker
 
-        self.status = {}
+        self.status = {} # Stores the current status of all the workers
         self.found = ""  # Password of hash
         self.lhash = ""  # Last hash processed
         self.hash = ""  # Hash to be processed, blank if idle
-        self.lower = -1  # Lower range of processing request
-        self.upper = -1  # Higher range of processing request
-        self.clower = -1
-        self.cupper = -1
-        self.queue = {
+        self.lower = -1  # Lower range of request received from the parent node
+        self.upper = -1  # Higher range of request received from the parent node
+        self.clower = -1 # Lower range of processing request
+        self.cupper = -1 # Higher range of processing request
+        self.queue = { # Queue of what work is currenly handled by which worker
             0 : [0, 0]
         }
         self.lock = threading.Lock()
-        self.req_timer = []
-        #self.popped_queue = {["",""]}
-        #Need a way to handle sequential and random requests
-        # Status can be either {"idle", "Processing Request", "No Worker Available(If manager)"}
+        self.req_timer = [] # Stores the time when a processing request was sent to the worker
 
+    # Takes a base 10 integer and converts it into a base 52 character string
     def convert_to_string(self, number):
-        #Takes a base 10 integer and converts it to a base 52 character string
         string = ["", "", "", "", ""]
         for i in range(4, -1, -1):
             Q = number // 52
@@ -104,8 +107,8 @@ class Manager:
             number = Q
         return "".join(string)
 
+    # Takes a base 52 character string and converts to base 10 integer
     def convert_to_int(self, s: str) -> int:
-        #Takes a base 52 character string and converts to base 10 integer
         val = 0
         idx = 0
         for i in range(4, -1, -1):
@@ -113,13 +116,15 @@ class Manager:
             idx = idx + 1
         return val
 
+    # Distributes the work among the workers
     def give_work_worker(self, connection, ID, skip=False):
         try:
             while True:
                 if not skip:
+                    # Will close the connection with the worker
+                    # if the worker hasn't sent a heartbeat in 10 seconds 
                     if (time.time() - self.worker_timer[ID - 1]) > 10:
                         print(self.worker_timer[ID - 1],time.time()," Worker Died")
-
                         connection.close()
                         break
                 received = connection.recv(1024)
@@ -128,8 +133,8 @@ class Manager:
                 if message["type"] == "status":
                     self.status[ID - 1] = message["status"]
                     if self.status[ID - 1]:
+                        # Sending the work, if worker's status is idle
                         if self.status[ID - 1] == "Idle" and self.hash != "":
-                            #Idle and Hash Not Found to be given same function
                             self.lock.acquire()
                             self.clower = self.lower
                             self.cupper = self.lower + 1000
@@ -142,6 +147,8 @@ class Manager:
                             print(ID-1," Sending: ",sending_data)
                             connection.sendall(sending_data.encode())
                             self.req_timer.insert(ID-1, time.time())
+                        # Resetting the variables if hash is found and
+                        # waiting for more work from the parent
                         elif self.status[ID - 1].startswith("Hash Found"):
                             print("Found")
                             self.lock.acquire()
@@ -151,7 +158,9 @@ class Manager:
                             self.lower = -1
                             self.upper = -1
                             self.lock.release()
+
                         elif self.status[ID - 1].startswith("Hash Not Found"):
+                            # Resetting the variables and sending "hash not found" to the parent
                             if(self.cupper >= self.upper):
                                 with self.lock:
                                     msg = {"type":"status"}
@@ -163,6 +172,7 @@ class Manager:
                                     self.hash = ""
                                     self.lower = -1
                                     self.upper = -1
+                            # Calculating the hash rate of the worker and sending the work accordingly
                             else:
                                 time_taken = time.time() - self.req_timer[ID - 1]
                                 rang = self.queue[ID][1] - self.queue[ID][0]
@@ -180,13 +190,14 @@ class Manager:
                                 print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
                                 connection.sendall(sending_data.encode())
                                 self.req_timer[ID - 1] = time.time()
-                        self.worker_timer[ID - 1] = time.time()
+                        self.worker_timer[ID - 1] = time.time() # Storing the time of sending a processing request
         except Exception as e:
             print(e)
             traceback.print_exc()
             connection.close()
             pass
 
+    # Function to receive the work from the master
     def give_work_master(self, connection, ID, skip=False):
         try:
             while True:
@@ -199,17 +210,10 @@ class Manager:
                             self.hash = message["hash"]
                             self.lower = self.convert_to_int(message["range"][0])
                             self.upper = self.convert_to_int(message["range"][1])
-                    # else:
-                    #     with self.lock:
-                    #         msg = {"type": "status", "status": "Busy"}
-                    #         sending_data = json.dumps(msg)
-                    #         print("Sending to master:", msg)
-                    #         connection.sendall(sending_data.encode())
         except Exception as e:
             print(e)
-            # traceback.print_exc()
-            # connection.close()
 
+    # Checking if the hash is found by any worker and sending "hash found" to the master/parent
     def check_found(self, connection, ID):
         print("Checking Found")
         while True:
@@ -227,6 +231,10 @@ class Manager:
                     # connection.close()
             time.sleep(1)
 
+    # Function to send manager's heartbeat to the parent node
+    # Idle: if atleast one worker is available but idle
+    # Processing Request: if all the workers are processing some hash
+    # No worker available: if no worker is available at the moment
     def send_heartbeat(self):
         msg = {"type":"status"}
         while True:
@@ -246,6 +254,7 @@ class Manager:
             self.master["master_socket"].sendall(payload.encode())
             time.sleep(3)
 
+    # Function to create a connection between manager and worker
     def connect_to_worker(self, input_hash=None):
         if input_hash:
             self.hash = input_hash
@@ -270,6 +279,7 @@ class Manager:
             t = threading.Thread(target = self.give_work_worker, args= (connection, i, ))
             t.start()
 
+    # Function to create a connection between manager and master/parent
     def connect_to_master(self):
         self.master["master_socket"] = socket.socket()
         masterPort = int(self.master["master_port"])
