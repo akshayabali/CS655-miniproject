@@ -113,6 +113,7 @@ class Master:
       }
       self.lock = threading.Lock()
       self.req_timer = []
+      self.max = self.convert_to_int("zzzzz")
       #self.popped_queue = {["",""]}
       #Need a way to handle sequential and random requests
       # Status can be either {"idle", "Processing Request", "No Worker Available(If manager)"}
@@ -181,6 +182,13 @@ class Master:
                      self.lock.acquire()
                      self.lower = self.upper + 1
                      self.upper = self.lower + work
+                     if self.upper > self.max:
+                        self.lhash = self.hash
+                        self.found = "00000"
+                        self.hash = ""
+                        self.lower = ""
+                        self.upper = ""
+                        break
                      self.queue[ID] = [self.lower, self.upper]
                      sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
                      self.lock.release()
@@ -201,6 +209,8 @@ class Master:
                         if self.found != "":
                            msg = {"type": "status"}
                            msg["status"] = "Hash Found"
+                           if self.found == "00000":
+                              msg["status"] = "Hash Not Found"
                            msg["hash"] = self.lhash
                            msg["pass"] = self.found
                            payload = json.dumps(msg)
