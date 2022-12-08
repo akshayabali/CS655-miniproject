@@ -135,122 +135,127 @@ class Master:
 
    def give_work(self, connection, ID, skip=False):
       #This function handles all connections with workers, managers and the Server
-      try:
-         while True:
-            if not skip:  #Used to skip check for Server connection
-               if (time.time() - self.worker_timer[ID - 1]) > 10:
-                  print(self.worker_timer[ID - 1],time.time()," Worker Died")
-                  # Work need to be given to others
-                  connection.close()
-                  return(0)
-            received = connection.recv(1024)
-            print(ID-1, " Received: ", received)
-            message = json.loads(received.decode("utf-8"))
-            #Decode the packets from string to dictionory using JSON Notation
-            if message["type"] == "status":
-               self.status[ID - 1] = message["status"]
-               if self.status[ID - 1]:
-                  if self.status[ID - 1] == "Idle" and self.hash != "":
-                     self.lock.acquire() #Lock for Multithreading
-                     self.lower = self.upper + 1
-                     self.upper = self.lower + 1000
-                     #Calculate Next Request
-                     if self.upper > self.max:
-                        if self.lower <= self.max:
-                           self.upper = self.max
+      while connection:
+         try:
+            while True:
+               if not skip:  #Used to skip check for Server connection
+                  if (time.time() - self.worker_timer[ID - 1]) > 10:
+                     print(self.worker_timer[ID - 1],time.time()," Worker Died")
+                     # Work need to be given to others
+                     connection.close()
+                     return(0)
+               received = connection.recv(1024)
+               print(ID-1, " Received: ", received)
+               message = json.loads(received.decode("utf-8"))
+               #Decode the packets from string to dictionory using JSON Notation
+               if message["type"] == "status":
+                  self.status[ID - 1] = message["status"]
+                  if self.status[ID - 1]:
+                     if self.status[ID - 1] == "Idle" and self.hash != "":
+                        self.lock.acquire() #Lock for Multithreading
+                        self.lower = self.upper + 1
+                        self.upper = self.lower + 1000
+                        #Calculate Next Request
+                        if self.upper > self.max:
+                           if self.lower <= self.max:
+                              self.upper = self.max
+                           else:
+                              print("Max Reached",self.upper,self.max)
+                              self.lhash = self.hash
+                              self.found = "00000"
+                              self.hash = ""
+                              self.lower = -1
+                              self.upper = -1
                         else:
-                           print("Max Reached",self.upper,self.max)
-                           self.lhash = self.hash
-                           self.found = "00000"
-                           self.hash = ""
-                           self.lower = -1
-                           self.upper = -1
-                     else:
-                        #Send the work to the Worker
-                        self.queue[ID] = [self.lower, self.upper]
-                        sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
-                        sending_data = json.dumps(sending_data)
-                        print(ID-1," Sending: ",sending_data)
-                        connection.sendall(sending_data.encode())
-                        self.req_timer.insert(ID-1, time.time())
-                     self.lock.release()
-                  elif self.status[ID - 1].startswith("Hash Found"):
-                     #If Found the Password, update variables
-                     print("Found")
-                     self.lock.acquire()
-                     self.lhash = self.hash
-                     self.found = message["pass"]
-                     self.hash = ""
-                     self.lower = -1
-                     self.upper = -1
-                     self.lock.release()
-                  elif self.status[ID - 1].startswith("Hash Not Found") and self.hash != "":
-                     #Calculate a Hash rate and create a new request
-                     time_taken = time.time() - self.req_timer[ID - 1]
-                     rang = self.queue[ID][1] - self.queue[ID][0]
-                     hash_rate = rang // time_taken #Find Hash rate
-                     work = hash_rate * 10 #Give work for 10 seconds
-                     self.lock.acquire()
-                     self.lower = self.upper + 1
-                     self.upper = self.lower + work
-                     if self.upper > self.max:
-                        if self.lower <= self.max:
-                           self.upper = self.max
+                           #Send the work to the Worker
+                           self.queue[ID] = [self.lower, self.upper]
+                           sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
+                           sending_data = json.dumps(sending_data)
+                           print(ID-1," Sending: ",sending_data)
+                           connection.sendall(sending_data.encode())
+                           self.req_timer.insert(ID-1, time.time())
+                        self.lock.release()
+                     elif self.status[ID - 1].startswith("Hash Found"):
+                        #If Found the Password, update variables
+                        print("Found")
+                        self.lock.acquire()
+                        self.lhash = self.hash
+                        self.found = message["pass"]
+                        self.hash = ""
+                        self.lower = -1
+                        self.upper = -1
+                        self.lock.release()
+                     elif self.status[ID - 1].startswith("Hash Not Found") and self.hash != "":
+                        #Calculate a Hash rate and create a new request
+                        if len(self.req_timer) > (ID -1):
+                           time_taken = time.time() - self.req_timer[ID - 1]
+                           rang = self.queue[ID][1] - self.queue[ID][0]
+                           hash_rate = rang // time_taken #Find Hash rate
+                           work = hash_rate * 10 #Give work for 10 seconds
                         else:
-                           #If no solution found for the request
-                           print("Max Reached",self.upper,self.max)
-                           self.lhash = self.hash
-                           self.found = "00000"
-                           self.hash = ""
-                           self.lower = -1
-                           self.upper = -1
-                     else:
-                        self.queue[ID] = [self.lower, self.upper]
-                        sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
-                        sending_data = json.dumps(sending_data)
-                        #Send work to the Workers
-                        print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
-                        connection.sendall(sending_data.encode())
-                        # self.worker_timer[ID - 1] = time.time()
-                        self.req_timer[ID - 1] = time.time()
-                     self.lock.release()
-               self.worker_timer[ID - 1] = time.time()
-            elif message["type"] == "ordered":
-               #Receive work request from the Client
-               if self.hash == "":
-                  with self.lock:
-                     self.hash = message["hash"]
-                     #Convert the incoming string to integers
-                     self.lower = self.convert_to_int(message["range"][0])
-                     self.max = self.convert_to_int(message["range"][1])
-                  #Wait for the work to be completed
-                  while True:
+                           work = 1000
+                        self.lock.acquire()
+                        self.lower = self.upper + 1
+                        self.upper = self.lower + work
+                        if self.upper > self.max:
+                           if self.lower <= self.max:
+                              self.upper = self.max
+                           else:
+                              #If no solution found for the request
+                              print("Max Reached",self.upper,self.max)
+                              self.lhash = self.hash
+                              self.found = "00000"
+                              self.hash = ""
+                              self.lower = -1
+                              self.upper = -1
+                        else:
+                           self.queue[ID] = [self.lower, self.upper]
+                           sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.lower), self.convert_to_string(self.upper)]}
+                           sending_data = json.dumps(sending_data)
+                           #Send work to the Workers
+                           print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
+                           connection.sendall(sending_data.encode())
+                           # self.worker_timer[ID - 1] = time.time()
+                           self.req_timer[ID - 1] = time.time()
+                        self.lock.release()
+                  self.worker_timer[ID - 1] = time.time()
+               elif message["type"] == "ordered":
+                  #Receive work request from the Client
+                  if self.hash == "":
                      with self.lock:
-                        if self.found != "":
-                           #Send the results to the client
-                           msg = {"type": "status"}
-                           msg["status"] = "Hash Found"
-                           if self.found == "00000":
-                              msg["status"] = "Hash Not Found"
-                           msg["hash"] = self.lhash
-                           msg["pass"] = self.found
-                           payload = json.dumps(msg)
-                           connection.sendall(payload.encode())
-                           self.found = ""
-                           connection.close()
-                           return(0)
-                     time.sleep(1)
-               else:
-                  with self.lock:
-                     #Reply busy if the Master is busy with some other request
-                     msg = {"type": "status", "status": "Busy"}
-                     sending_data = json.dumps(msg)
-                     connection.sendall(sending_data.encode())
-      except Exception as e:
-         print(e)
-         # traceback.print_exc()
-         # connection.close()
-         # pass
+                        self.hash = message["hash"]
+                        #Convert the incoming string to integers
+                        self.lower = self.convert_to_int(message["range"][0])
+                        self.max = self.convert_to_int(message["range"][1])
+                     #Wait for the work to be completed
+                     while True:
+                        with self.lock:
+                           if self.found != "":
+                              #Send the results to the client
+                              msg = {"type": "status"}
+                              msg["status"] = "Hash Found"
+                              if self.found == "00000":
+                                 msg["status"] = "Hash Not Found"
+                              msg["hash"] = self.lhash
+                              msg["pass"] = self.found
+                              payload = json.dumps(msg)
+                              connection.sendall(payload.encode())
+                              self.found = ""
+                              connection.close()
+                              return(0)
+                        time.sleep(1)
+                  else:
+                     with self.lock:
+                        #Reply busy if the Master is busy with some other request
+                        msg = {"type": "status", "status": "Busy"}
+                        sending_data = json.dumps(msg)
+                        connection.sendall(sending_data.encode())
+         except Exception as e:
+            print(e)
+            traceback.print_exc()
+            time.sleep(5)
+            # connection.close()
+            # pass
 
    def connect_to_worker(self, input_hash=None):
       #Thread to listen for Workers

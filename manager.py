@@ -118,84 +118,86 @@ class Manager:
 
     # Distributes the work among the workers
     def give_work_worker(self, connection, ID, skip=False):
-        try:
-            while True:
-                if not skip:
-                    # Will close the connection with the worker
-                    # if the worker hasn't sent a heartbeat in 10 seconds 
-                    if (time.time() - self.worker_timer[ID - 1]) > 10:
-                        print(self.worker_timer[ID - 1],time.time()," Worker Died")
-                        connection.close()
-                        break
-                received = connection.recv(1024)
-                print(ID-1, " Received: ", received)
-                message = json.loads(received.decode("utf-8"))
-                if message["type"] == "status":
-                    self.status[ID - 1] = message["status"]
-                    if self.status[ID - 1]:
-                        # Sending the work, if worker's status is idle
-                        if self.status[ID - 1] == "Idle" and self.hash != "":
-                            self.lock.acquire()
-                            self.clower = self.lower
-                            self.cupper = self.lower + 1000
-                            if(self.cupper > self.upper):
-                                self.cupper = self.upper
-                            self.queue[ID] = [self.clower, self.cupper]
-                            sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.clower), self.convert_to_string(self.cupper)]}
-                            self.lock.release()
-                            sending_data = json.dumps(sending_data)
-                            print(ID-1," Sending: ",sending_data)
-                            connection.sendall(sending_data.encode())
-                            self.req_timer.insert(ID-1, time.time())
-                        # Resetting the variables if hash is found and
-                        # waiting for more work from the parent
-                        elif self.status[ID - 1].startswith("Hash Found"):
-                            print("Found")
-                            self.lock.acquire()
-                            self.lhash = self.hash
-                            self.found = message["pass"]
-                            self.hash = ""
-                            self.lower = -1
-                            self.upper = -1
-                            self.lock.release()
-
-                        elif self.status[ID - 1].startswith("Hash Not Found"):
-                            # Resetting the variables and sending "hash not found" to the parent
-                            if(self.cupper >= self.upper):
-                                with self.lock:
-                                    msg = {"type":"status"}
-                                    msg["status"] = "Hash Not Found"
-                                    msg["hash"] = self.hash
-                                    sending_data = json.dumps(msg)
-                                    self.master["master_socket"].sendall(sending_data.encode())
-                                    self.lhash = self.hash
-                                    self.hash = ""
-                                    self.lower = -1
-                                    self.upper = -1
-                            # Calculating the hash rate of the worker and sending the work accordingly
-                            else:
-                                time_taken = time.time() - self.req_timer[ID - 1]
-                                rang = self.queue[ID][1] - self.queue[ID][0]
-                                hash_rate = rang // time_taken
-                                work = hash_rate * 10
+        while connection:
+            try:
+                while True:
+                    if not skip:
+                        # Will close the connection with the worker
+                        # if the worker hasn't sent a heartbeat in 10 seconds 
+                        if (time.time() - self.worker_timer[ID - 1]) > 10:
+                            print(self.worker_timer[ID - 1],time.time()," Worker Died")
+                            connection.close()
+                            break
+                    received = connection.recv(1024)
+                    print(ID-1, " Received: ", received)
+                    message = json.loads(received.decode("utf-8"))
+                    if message["type"] == "status":
+                        self.status[ID - 1] = message["status"]
+                        if self.status[ID - 1]:
+                            # Sending the work, if worker's status is idle
+                            if self.status[ID - 1] == "Idle" and self.hash != "":
                                 self.lock.acquire()
-                                self.clower = self.cupper + 1
-                                self.cupper = self.clower + work
+                                self.clower = self.lower
+                                self.cupper = self.lower + 1000
                                 if(self.cupper > self.upper):
                                     self.cupper = self.upper
                                 self.queue[ID] = [self.clower, self.cupper]
-                                sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.clower), self.convert_to_string(self.cupper)]}
+                                sending_data = {"hash" : self.hash,"type": "ordered", "range" : [self.convert_to_string(self.clower), self.convert_to_string(self.cupper)]}
                                 self.lock.release()
                                 sending_data = json.dumps(sending_data)
-                                print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
+                                print(ID-1," Sending: ",sending_data)
                                 connection.sendall(sending_data.encode())
-                                self.req_timer[ID - 1] = time.time()
-                        self.worker_timer[ID - 1] = time.time() # Storing the time of sending a processing request
-        except Exception as e:
-            print(e)
-            traceback.print_exc()
-            connection.close()
-            pass
+                                self.req_timer.insert(ID-1, time.time())
+                            # Resetting the variables if hash is found and
+                            # waiting for more work from the parent
+                            elif self.status[ID - 1].startswith("Hash Found"):
+                                print("Found")
+                                self.lock.acquire()
+                                self.lhash = self.hash
+                                self.found = message["pass"]
+                                self.hash = ""
+                                self.lower = -1
+                                self.upper = -1
+                                self.lock.release()
+
+                            elif self.status[ID - 1].startswith("Hash Not Found"):
+                                # Resetting the variables and sending "hash not found" to the parent
+                                if(self.cupper >= self.upper):
+                                    with self.lock:
+                                        msg = {"type":"status"}
+                                        msg["status"] = "Hash Not Found"
+                                        msg["hash"] = self.hash
+                                        sending_data = json.dumps(msg)
+                                        self.master["master_socket"].sendall(sending_data.encode())
+                                        self.lhash = self.hash
+                                        self.hash = ""
+                                        self.lower = -1
+                                        self.upper = -1
+                                # Calculating the hash rate of the worker and sending the work accordingly
+                                else:
+                                    work = 1000
+                                    if len(self.req_timer) > (ID -1):
+                                        time_taken = time.time() - self.req_timer[ID - 1]
+                                        rang = self.queue[ID][1] - self.queue[ID][0]
+                                        hash_rate = rang // time_taken
+                                        work = hash_rate * 10
+                                    self.lock.acquire()
+                                    self.clower = self.cupper + 1
+                                    self.cupper = self.clower + work
+                                    if(self.cupper > self.upper):
+                                        self.cupper = self.upper
+                                    self.queue[ID] = [self.clower, self.cupper]
+                                    sending_data = {"hash": self.hash,"type": "ordered", "range" : [self.convert_to_string(self.clower), self.convert_to_string(self.cupper)]}
+                                    self.lock.release()
+                                    sending_data = json.dumps(sending_data)
+                                    print("Sending to ",ID-1 , " : ",sending_data, " Hash Rate : ",hash_rate)
+                                    connection.sendall(sending_data.encode())
+                                    self.req_timer[ID - 1] = time.time()
+                            self.worker_timer[ID - 1] = time.time() # Storing the time of sending a processing request
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
+                time.sleep(5)
 
     # Function to receive the work from the master
     def give_work_master(self, connection, ID, skip=False):
