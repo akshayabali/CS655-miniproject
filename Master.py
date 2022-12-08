@@ -218,7 +218,7 @@ class Master:
                            self.found = ""
                            connection.close()
                            return(0)
-                     time.sleep(10)
+                     time.sleep(1)
                else:
                   with self.lock:
                      msg = {"type": "status", "status": "Busy"}
