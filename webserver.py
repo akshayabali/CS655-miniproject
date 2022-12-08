@@ -64,7 +64,7 @@ def crack_json(input_hash):
         sock.connect((MASTER_HOST, MASTER_PORT))
         sock.sendall(json.dumps(payload).encode())
         msg = sock.recv(DEFAULT_MSG_SIZE).decode()
-    resp_time = start - time.time()
+    resp_time = time.time() - start
     resp = json.loads(msg)
     resp['time'] = resp_time
     print(resp)
