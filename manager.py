@@ -153,8 +153,8 @@ class Manager:
                             self.lhash = self.hash
                             self.found = message["pass"]
                             self.hash = ""
-                            self.lower = ""
-                            self.upper = ""
+                            self.lower = -1
+                            self.upper = -1
                             self.lock.release()
                         elif self.status[ID - 1].startswith("Hash Not Found"):
                             if(self.cupper >= self.upper):
@@ -166,8 +166,8 @@ class Manager:
                                     self.master["master_socket"].sendall(sending_data.encode())
                                     self.lhash = self.hash
                                     self.hash = ""
-                                    self.lower = ""
-                                    self.upper = ""
+                                    self.lower = -1
+                                    self.upper = -1
                             else:
                                 time_taken = time.time() - self.req_timer[ID - 1]
                                 rang = self.queue[ID][1] - self.queue[ID][0]
