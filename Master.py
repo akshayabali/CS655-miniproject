@@ -207,7 +207,7 @@ class Master:
                            connection.sendall(payload.encode())
                            self.found = ""
                            connection.close()
-                           break
+                           return(0)
                      time.sleep(10)
                else:
                   with self.lock:

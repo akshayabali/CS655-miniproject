@@ -69,7 +69,7 @@ class Manager:
         }
 
         self.master = {
-            "master_ip": "0.0.0.0",  # IP of the master
+            "master_ip": "10.10.2.2",  # IP of the master
             "master_port": "58513",  # Port number of the master
             "master_socket": None
         }
@@ -215,9 +215,12 @@ class Manager:
         print(self.hash)
         self.manager["manager_socket"] = socket.socket()
         serverPort = int(self.manager["manager_port"])
-        x = self.manager["manager_socket"].bind(("", serverPort))
-        print(x, "Bind sucessfull to Worker")
-        self.master["manager_socket"].listen() 
+        x = self.manager["manager_socket"].bind(("0.0.0.0", serverPort))
+        if x:
+        	print(x, "Bind sucessfull to Worker")
+        else:
+            print("No Bind")
+        self.manager["manager_socket"].listen() 
         print("Manager Listening")
         i = 0
         while True:
@@ -233,7 +236,7 @@ class Manager:
     def connect_to_master(self):
         self.master["master_socket"] = socket.socket()
         masterPort = int(self.master["master_port"])
-        self.master["master_socket"].connect(self.master["master_ip"], masterPort)
+        self.master["master_socket"].connect((self.master["master_ip"], masterPort))
         print("Connection sucessfull to Master")
         t = threading.Thread(target=self.send_heartbeat)
         t.start()
