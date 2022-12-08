@@ -23,7 +23,9 @@ def base():
 
 @app.route('/test/display', methods=['GET'])
 def result_display():
-    return render_template("result.html", status="Hash Found", input_hash="abuawd2ijadhiaw", password="AAAAA")
+    return render_template("result.html",
+                           status="Hash Found", input_hash="abuawd2ijadhiaw",
+                           password="AAAAA", resp_time=123456789)
 
 
 @app.route('/test/range', methods=['POST'])
@@ -62,10 +64,14 @@ def crack_json(input_hash):
         sock.connect((MASTER_HOST, MASTER_PORT))
         sock.sendall(json.dumps(payload).encode())
         msg = sock.recv(DEFAULT_MSG_SIZE).decode()
-    resp = json.loads(msg)
     resp_time = start - time.time()
+    resp = json.loads(msg)
     resp['time'] = resp_time
+    print(resp)
+
+    # json response for testing/analysis
     return resp
+
 
 @app.route('/crack', methods=['POST'])
 def crack():
@@ -85,15 +91,20 @@ def crack():
     }
 
     # send to master
+    start = time.time()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((MASTER_HOST, MASTER_PORT))
         sock.sendall(json.dumps(payload).encode())
         msg = sock.recv(DEFAULT_MSG_SIZE).decode()
+    resp_time = start - time.time()
     resp = json.loads(msg)
-    print(resp)
+    resp['time'] = resp_time
     status = resp.get("status", "Busy")
     password = resp.get("pass", "Not Found")
-    return render_template("result.html", status=status, input_hash=input_hash, password=password)
+    print(resp)
+
+    # display html page
+    return render_template("result.html", status=status, input_hash=input_hash, password=password, resp_time=resp_time)
 
 
 if __name__ == '__main__':
