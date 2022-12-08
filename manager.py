@@ -199,12 +199,12 @@ class Manager:
                             self.hash = message["hash"]
                             self.lower = self.convert_to_int(message["range"][0])
                             self.upper = self.convert_to_int(message["range"][1])
-                    else:
-                        with self.lock:
-                            msg = {"type": "status", "status": "Busy"}
-                            sending_data = json.dumps(msg)
-                            print("Sending to master:", msg)
-                            connection.sendall(sending_data.encode())
+                    # else:
+                    #     with self.lock:
+                    #         msg = {"type": "status", "status": "Busy"}
+                    #         sending_data = json.dumps(msg)
+                    #         print("Sending to master:", msg)
+                    #         connection.sendall(sending_data.encode())
         except Exception as e:
             print(e)
             # traceback.print_exc()
