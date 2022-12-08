@@ -187,13 +187,13 @@ class Master:
                         self.lock.release()
                      elif self.status[ID - 1].startswith("Hash Not Found") and self.hash != "":
                         #Calculate a Hash rate and create a new request
+                        hash_rate = 100
+                        work = 1000
                         if len(self.req_timer) > (ID -1):
                            time_taken = time.time() - self.req_timer[ID - 1]
                            rang = self.queue[ID][1] - self.queue[ID][0]
                            hash_rate = rang // time_taken #Find Hash rate
                            work = hash_rate * 10 #Give work for 10 seconds
-                        else:
-                           work = 1000
                         self.lock.acquire()
                         self.lower = self.upper + 1
                         self.upper = self.lower + work
