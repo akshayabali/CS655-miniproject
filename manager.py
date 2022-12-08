@@ -204,20 +204,6 @@ class Manager:
                             self.hash = message["hash"]
                             self.lower = self.convert_to_int(message["range"][0])
                             self.upper = self.convert_to_int(message["range"][1])
-                        # while True:
-                        #     with self.lock:
-                        #         if self.found != "":
-                        #             msg = {"type": "status"}
-                        #             msg["status"] = "Hash Found"
-                        #             msg["hash"] = self.lhash
-                        #             msg["pass"] = self.found
-                        #             payload = json.dumps(msg)
-                        #             print("Sending to master:", msg)
-                        #             connection.sendall(payload.encode())
-                        #             self.found = ""
-                        #             connection.close()
-                        #             break
-                        #     time.sleep(10)
                     else:
                         with self.lock:
                             msg = {"type": "status", "status": "Busy"}
@@ -228,6 +214,23 @@ class Manager:
             print(e)
             # traceback.print_exc()
             # connection.close()
+
+    def check_found(self, connection, ID):
+        print("Checking Found")
+        while True:
+            with self.lock:
+                if self.found != "":
+                    msg = {"type": "status"}
+                    msg["status"] = "Hash Found"
+                    msg["hash"] = self.lhash
+                    msg["pass"] = self.found
+                    payload = json.dumps(msg)
+                    print("Sending to master:", msg)
+                    connection.sendall(payload.encode())
+                    self.found = ""
+                    self.lhash = ""
+                    # connection.close()
+            time.sleep(1)
 
     def send_heartbeat(self):
         msg = {"type":"status"}
@@ -279,8 +282,10 @@ class Manager:
         print("Connection sucessfull to Master")
         t1 = threading.Thread(target=self.send_heartbeat)
         t2 = threading.Thread(target=self.give_work_master, args= (self.master["master_socket"], 0, True))
+        t3 = threading.Thread(target=self.check_found, args= (self.master["master_socket"],0))
         t1.start()
         t2.start()
+        t3.start()
 
     def start(self):
         master_client = threading.Thread(target=self.connect_to_master)

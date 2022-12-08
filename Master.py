@@ -188,6 +188,7 @@ class Master:
                      self.upper = -1
                      self.lock.release()
                   elif self.status[ID - 1].startswith("Hash Not Found") and self.hash != "":
+                     #add check for req_timer
                      time_taken = time.time() - self.req_timer[ID - 1]
                      rang = self.queue[ID][1] - self.queue[ID][0]
                      hash_rate = rang // time_taken
