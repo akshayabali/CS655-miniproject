@@ -22,6 +22,10 @@ The master, manager and worker use native Python 3.6.
 
 4. Reserve your resources. Once your resources are reserved, select the server and make note of the "Routable IP", this is your public IP address that will be used for the web server.
 
+### Setup SSH
+Download `deployment/config` to your `~/.ssh` directory. This will make it easier to SSH into the different nodes.
+Update `config` to your SSH key and username as well as update it for the correct host address and ports for your nodes. 
+
 ### Web Server
 1. SSH into the server node 
 2. Download the Git repository, unzip it, and setup the environment using the following commands:

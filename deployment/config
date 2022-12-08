@@ -1,0 +1,30 @@
+host server
+    HostName 132.198.183.154
+    IdentityFile ~/.ssh/id_geni_ssh_rsa
+    User cyrilc
+host worker0-1
+    HostName pc1.instageni.uvm.edu
+    IdentityFile ~/.ssh/id_geni_ssh_rsa
+    Port 26812
+    User cyrilc
+host worker0-2
+    HostName pc1.instageni.uvm.edu
+    IdentityFile ~/.ssh/id_geni_ssh_rsa
+    Port 26813
+    User cyrilc
+host manager1
+    HostName pc1.instageni.uvm.edu
+    IdentityFile ~/.ssh/id_geni_ssh_rsa
+    Port 26810
+    User cyrilc
+host worker1-1
+    HostName pc1.instageni.uvm.edu
+    IdentityFile ~/.ssh/id_geni_ssh_rsa
+    Port 26814
+    User cyrilc
+host worker1-2
+    HostName pc1.instageni.uvm.edu
+    IdentityFile ~/.ssh/id_geni_ssh_rsa
+    Port 26815
+    User cyrilc
+    
