@@ -1,3 +1,4 @@
+import argparse
 import socket
 import json
 import threading
@@ -60,27 +61,21 @@ class Alphabet(Enum):
     z = 51
 
 class Manager:
-    def __init__(self):
+    def __init__(self, HOST, MPORT, LPORT):
         # Global Objects
         self.children = [{}] #List of children as a list of objects
         self.manager = {
-            "manager_port": "58513",  # Port number of the manager
+            "manager_port": LPORT,  # Port number of the manager
             "manager_socket": None
         }
 
         self.master = {
-            "master_ip": "10.10.2.2",  # IP of the master
-            "master_port": "58513",  # Port number of the master
+            "master_ip": HOST,  # IP of the master
+            "master_port": MPORT,  # Port number of the master
             "master_socket": None
         }
 
         self.worker_timer = []
-
-        self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.listening_address = "127.0.0.1"  # listen address, web server is on same machine
-        self.listening_port_num = 7777  # Port number to listen on
-        self.listening_socket.bind((self.listening_address, self.listening_port_num))
-        self.listening_socket.listen()
 
         self.status = {}
         self.found = ""  # Password of hash
@@ -293,5 +288,14 @@ class Manager:
         worker_server = threading.Thread(target=self.connect_to_worker)
         worker_server.start()
 
-m = Manager()
-m.start()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mport", "-mp", type=int, default=58513)
+    parser.add_argument("--host", "-u", type=str, default="127.0.0.1")
+    parser.add_argument("--lport", "-lp", type=int, default=58512)
+    args = parser.parse_args()
+    HOST = args.host
+    MPORT = args.mport
+    LPORT = args.lport
+    m = Manager(HOST, MPORT, LPORT)
+    m.start()
