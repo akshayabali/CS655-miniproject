@@ -95,7 +95,7 @@ class Manager:
             0 : [0, 0]
         }
         self.lock = threading.Lock()
-        self.req_timer = [] # Stores the time when a processing request was sent to the worker
+        self.req_timer = {} # Stores the time when a processing request was sent to the worker
 
     # Takes a base 10 integer and converts it into a base 52 character string
     def convert_to_string(self, number):
@@ -147,7 +147,7 @@ class Manager:
                                 sending_data = json.dumps(sending_data)
                                 print(ID-1," Sending: ",sending_data)
                                 connection.sendall(sending_data.encode())
-                                self.req_timer.insert(ID-1, time.time())
+                                self.req_timer[ID-1]= time.time()
                             # Resetting the variables if hash is found and
                             # waiting for more work from the parent
                             elif self.status[ID - 1].startswith("Hash Found"):
@@ -175,8 +175,9 @@ class Manager:
                                         self.upper = -1
                                 # Calculating the hash rate of the worker and sending the work accordingly
                                 else:
+                                    hash_rate = 100
                                     work = 1000
-                                    if len(self.req_timer) > (ID -1):
+                                    if (ID -1) in self.req_timer:
                                         time_taken = time.time() - self.req_timer[ID - 1]
                                         rang = self.queue[ID][1] - self.queue[ID][0]
                                         hash_rate = rang // time_taken

@@ -108,7 +108,7 @@ class Master:
          0 : [0, 0]
       }
       self.lock = threading.Lock()
-      self.req_timer = []
+      self.req_timer = {}
       self.max = 0
       #self.popped_queue = {["",""]}
       #Need a way to handle sequential and random requests
@@ -173,7 +173,7 @@ class Master:
                            sending_data = json.dumps(sending_data)
                            print(ID-1," Sending: ",sending_data)
                            connection.sendall(sending_data.encode())
-                           self.req_timer.insert(ID-1, time.time())
+                           self.req_timer[ID-1]= time.time()
                         self.lock.release()
                      elif self.status[ID - 1].startswith("Hash Found"):
                         #If Found the Password, update variables
@@ -189,7 +189,7 @@ class Master:
                         #Calculate a Hash rate and create a new request
                         hash_rate = 100
                         work = 1000
-                        if len(self.req_timer) > (ID -1):
+                        if (ID-1) in self.req_timer:
                            time_taken = time.time() - self.req_timer[ID - 1]
                            rang = self.queue[ID][1] - self.queue[ID][0]
                            hash_rate = rang // time_taken #Find Hash rate
